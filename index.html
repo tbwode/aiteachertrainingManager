@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI教师研训 - 超管端</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/recharts/umd/Recharts.js"></script>
+  <script src="https://unpkg.com/@tanstack/react-table@8.9.3/build/umd/index.production.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2.1.0/dist/echarts-wordcloud.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/antd/5.12.8/reset.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#C8000C',
+            'primary-light': '#E85D6A',
+            'primary-lighter': '#FDE8E8',
+            'primary-dark': '#9A0009',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">AI教师研训</div>
+      </div>
+      <nav class="sidebar-menu">
+        <div class="menu-item active" data-page="course-list">
+          <span class="menu-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </span>
+          <span>AI研训</span>
+        </div>
+        <div class="submenu">
+          <div class="submenu-item active" data-page="dashboard">
+            <span class="submenu-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            </span>
+            <span>研训驾驶舱</span>
+          </div>
+          <div class="submenu-item" data-page="course-list">
+            <span class="submenu-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            </span>
+            <span>研训课程</span>
+          </div>
+          <div class="submenu-item" data-page="activity-list">
+            <span class="submenu-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </span>
+            <span>研训活动</span>
+          </div>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="header-breadcrumb">
+          <span id="header-title">研训课程</span>
+        </div>
+        <div class="header-actions">
+          <div class="user-avatar">超</div>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main-content">
+
+        <!-- ==================== AI研训驾驶舱 数据大屏 ==================== -->
+        <section id="page-dashboard" class="page-section active">
+          <div class="cockpit-container">
+            <!-- 顶部标题栏 -->
+            <header class="cockpit-header">
+              <div class="cockpit-header-left">
+                <div class="cockpit-logo">AI教师研训</div>
+              </div>
+              <div class="cockpit-header-center">
+                <h1 class="cockpit-title">AI教师研训驾驶舱</h1>
+              </div>
+              <div class="cockpit-header-right">
+                <button class="cockpit-fullscreen-btn" id="cockpit-fullscreen-btn" onclick="app.toggleCockpitFullscreen()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                  <span>全屏</span>
+                </button>
+                <div class="cockpit-time" id="cockpit-time">--</div>
+              </div>
+            </header>
+
+            <!-- 主体内容区 -->
+            <div class="cockpit-body">
+              <!-- 左侧：人员总览 + 能力雷达 + 热门活动 -->
+              <aside class="cockpit-left">
+                <div class="cockpit-panel">
+                  <div class="cockpit-panel-title">人员总览</div>
+                  <div class="cockpit-personnel">
+                    <div class="cockpit-personnel-row">
+                      <span class="cockpit-personnel-label">教师参训总人数</span>
+                      <span class="cockpit-personnel-num" id="dash-total-teachers">--</span>
+                    </div>
+                    <div class="cockpit-personnel-row">
+                      <span class="cockpit-personnel-label">完成人数</span>
+                      <span class="cockpit-personnel-num" id="dash-completed-teachers">--</span>
+                    </div>
+                    <div class="cockpit-personnel-row">
+                      <span class="cockpit-personnel-label">研训完成率</span>
+                      <span class="cockpit-personnel-num" id="dash-completion-rate">--%</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="cockpit-panel">
+                  <div class="cockpit-panel-title">教师能力维度分布</div>
+                  <div id="cockpit-radar-chart" style="height: 150px;"></div>
+                </div>
+                <div class="cockpit-panel">
+                  <div class="cockpit-panel-title">学科参训分布排行</div>
+                  <div id="cockpit-subject-chart" style="height: 120px;"></div>
+                </div>
+              </aside>
+
+              <!-- 中间：核心数据区 -->
+              <main class="cockpit-center">
+                <!-- 核心指标卡 -->
+                <div class="cockpit-kpi-row">
+                  <div class="cockpit-kpi-card">
+                    <div class="cockpit-kpi-icon" style="color: #C8000C;">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    </div>
+                    <div class="cockpit-kpi-data">
+                      <div class="cockpit-kpi-value" id="dash-total-courses">--</div>
+                      <div class="cockpit-kpi-label">研训课程数</div>
+                    </div>
+                  </div>
+                  <div class="cockpit-kpi-card">
+                    <div class="cockpit-kpi-icon" style="color: #78716C;">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    </div>
+                    <div class="cockpit-kpi-data">
+                      <div class="cockpit-kpi-value" id="dash-total-activities">--</div>
+                      <div class="cockpit-kpi-label">研训活动数</div>
+                    </div>
+                  </div>
+                  <div class="cockpit-kpi-card">
+                    <div class="cockpit-kpi-icon" style="color: #A8A29E;">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
+                    </div>
+                    <div class="cockpit-kpi-data">
+                      <div class="cockpit-kpi-value" id="dash-avg-ability">--</div>
+                      <div class="cockpit-kpi-label">能力维度平均分</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 中间主图表：活动参与完成情况 -->
+                <div class="cockpit-panel cockpit-panel-main">
+                  <div class="cockpit-panel-title">活动参与完成情况</div>
+                  <div id="cockpit-activity-completion-chart" style="height: 240px;"></div>
+                </div>
+
+                <!-- 底部趋势图 -->
+                <div class="cockpit-panel cockpit-panel-main">
+                  <div class="cockpit-panel-title">教师学习时长趋势</div>
+                  <div id="cockpit-learning-hours-chart" style="height: 150px;"></div>
+                </div>
+
+                <!-- 高频词云 -->
+                <div class="cockpit-panel cockpit-panel-main">
+                  <div class="cockpit-panel-title">高频词云</div>
+                  <div id="cockpit-word-cloud" style="height: 160px;"></div>
+                </div>
+              </main>
+
+              <!-- 右侧：细分看板 -->
+              <aside class="cockpit-right">
+                <div class="cockpit-panel">
+                  <div class="cockpit-panel-title">热门课程 TOP5</div>
+                  <div id="cockpit-top-courses" class="cockpit-rank-list"></div>
+                </div>
+                <div class="cockpit-panel">
+                  <div class="cockpit-panel-title">活跃教师 TOP5</div>
+                  <div id="cockpit-top-teachers" class="cockpit-rank-list"></div>
+                </div>
+                <div class="cockpit-panel">
+                  <div class="cockpit-panel-title">热门活动 TOP5</div>
+                  <div id="cockpit-top-activities" class="cockpit-rank-list"></div>
+                </div>
+                <div class="cockpit-panel">
+                  <div class="cockpit-panel-title">热门问题 TOP5</div>
+                  <div id="cockpit-top-questions" class="cockpit-rank-list"></div>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== 课程列表页 ==================== -->
+        <section id="page-course-list" class="page-section">
+          <div class="page-header">
+            <div>
+              <div class="page-title">研训课程</div>
+              <div class="page-subtitle">管理所有研训课程，支持课程类型筛选和搜索</div>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-secondary" onclick="app.openTypeDrawer()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                管理类型
+              </button>
+              <button class="btn btn-primary" onclick="app.createCourse()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                新建课程
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-body">
+              <!-- Filter Bar -->
+              <div class="filter-bar">
+                <div class="search-input">
+                  <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                  <input type="text" id="list-search" placeholder="搜索课程名称" oninput="app.filterCourses()">
+                </div>
+                <!-- 类型多选 -->
+                <div class="multi-select" id="type-multi-select" style="width:200px">
+                  <div class="multi-select-trigger" onclick="app.toggleTypeDropdown(event)">
+                    <span id="type-select-label">全部类型</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                  </div>
+                  <div class="multi-select-dropdown" id="type-dropdown">
+                    <div class="multi-select-search">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                      <input type="text" id="type-search-input" placeholder="搜索类型" oninput="app.filterTypeOptions(this.value)">
+                    </div>
+                    <div class="multi-select-options" id="type-options"></div>
+                    <div class="multi-select-footer">
+                      <button class="btn btn-ghost btn-sm" onclick="app.clearTypeSelection()">清空</button>
+                      <button class="btn btn-primary btn-sm" onclick="app.confirmTypeSelection()">确定</button>
+                    </div>
+                  </div>
+                </div>
+
+                <select class="form-select" style="width:160px" id="list-status-filter" onchange="app.filterCourses()">
+                  <option value="">全部状态</option>
+                  <option value="published">已上架</option>
+                  <option value="draft">草稿</option>
+                  <option value="off">已下架</option>
+                </select>
+                <input type="date" class="form-input" style="width:160px" id="list-date-from" onchange="app.filterCourses()">
+                <span class="text-stone-400">至</span>
+                <input type="date" class="form-input" style="width:160px" id="list-date-to" onchange="app.filterCourses()">
+              </div>
+
+              <!-- Table -->
+              <div class="table-wrapper" id="course-table-container"></div>
+
+              <!-- Pagination -->
+              <div class="pagination" id="course-pagination"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== 课程表单页 ==================== -->
+        <section id="page-course-form" class="page-section">
+          <div class="breadcrumb" id="form-breadcrumb">
+            <span class="breadcrumb-item" onclick="app.goToList()">研训课程</span>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-item active" id="form-breadcrumb-title">新建课程</span>
+          </div>
+
+          <div class="card">
+            <div class="tabs">
+              <div class="tab active" data-tab="basic" onclick="app.switchFormTab('basic')">基本信息</div>
+              <div class="tab" data-tab="catalog" onclick="app.switchFormTab('catalog')">课程目录</div>
+            </div>
+
+            <div class="card-body">
+              <!-- Tab: 基本信息 -->
+              <div id="tab-basic" class="tab-content active">
+                <div class="form-row">
+                  <div class="form-group" style="flex:2">
+                    <label class="form-label">课程名称 <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="course-name" maxlength="30" placeholder="请输入课程名称，不超过30个字符">
+                    <div class="form-hint">已输入 <span id="name-count">0</span>/30 字符</div>
+                  </div>
+                  <div class="form-group" style="flex:1">
+                    <label class="form-label">课程封面 <span class="required">*</span></label>
+                    <div class="cover-preview" id="cover-preview" onclick="document.getElementById('cover-file-input').click()">
+                      <span class="cover-placeholder">点击上传封面</span>
+                    </div>
+                    <input type="file" id="cover-file-input" accept="image/jpeg,image/png" style="display:none" onchange="app.handleCoverUpload(this)">
+                    <div class="form-hint">建议比例16:9，支持jpg、png，不超过5MB</div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">课程介绍 <span class="required">*</span></label>
+                  <div class="rich-editor" id="course-desc-editor">
+                    <div class="rich-editor-toolbar">
+                      <button type="button" onclick="app.execRichCommand('bold')" title="加粗"><b>B</b></button>
+                      <button type="button" onclick="app.execRichCommand('italic')" title="斜体"><i>I</i></button>
+                      <button type="button" onclick="app.execRichCommand('underline')" title="下划线"><u>U</u></button>
+                      <span class="rich-toolbar-sep"></span>
+                      <button type="button" onclick="app.execRichCommand('insertUnorderedList')" title="无序列表">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                      </button>
+                      <button type="button" onclick="app.execRichCommand('insertOrderedList')" title="有序列表">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+                      </button>
+                    </div>
+                    <div class="rich-editor-content" id="course-desc" contenteditable="true" placeholder="请输入课程介绍..."></div>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">课程类型 <span class="required">*</span></label>
+                    <div class="org-multi-select" id="type-form-multi-select">
+                      <div class="org-multi-trigger" onclick="app.toggleTypeFormDropdown(event)">
+                        <span id="type-form-select-label">请选择课程类型</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                      </div>
+                    <div class="org-multi-dropdown" id="type-form-dropdown">
+                        <div class="org-multi-search">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                          <input type="text" id="type-form-search-input" placeholder="搜索课程类型" oninput="app.filterTypeFormOptions(this.value)">
+                        </div>
+                        <div class="org-multi-options" id="type-form-options"></div>
+                        <div class="org-multi-footer">
+                          <button class="btn btn-ghost btn-sm" onclick="app.clearTypeFormSelection()">清空</button>
+                          <button class="btn btn-primary btn-sm" onclick="app.confirmTypeFormSelection()">确定</button>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="mt-2 text-right">
+                      <button type="button" class="btn btn-ghost btn-sm" style="color:var(--primary)" onclick="app.openTypeDrawer()">管理课程类型</button>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">课程提供部门 <span class="required">*</span></label>
+                    <div class="org-multi-select" id="org-multi-select">
+                      <div class="org-multi-trigger" onclick="app.toggleOrgDropdown(event)">
+                        <span id="org-select-label">请选择部门</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                      </div>
+                      <div class="org-multi-dropdown" id="org-dropdown">
+                        <div class="org-multi-search">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                          <input type="text" id="org-search-input" placeholder="搜索部门" oninput="app.filterOrgOptions(this.value)">
+                        </div>
+                        <div class="org-multi-options" id="org-options"></div>
+                        <div class="org-multi-footer">
+                          <button class="btn btn-ghost btn-sm" onclick="app.clearOrgSelection()">清空</button>
+                          <button class="btn btn-primary btn-sm" onclick="app.confirmOrgSelection()">确定</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group" style="flex: 1;">
+                    <label class="form-label">能力维度 <span class="required">*</span></label>
+                    <div class="ability-multi-select" id="ability-multi-select">
+                      <div class="ability-multi-trigger" onclick="app.toggleAbilityDropdown(event)">
+                        <span id="ability-select-label">请选择能力维度（可多选）</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                      </div>
+                      <div class="ability-multi-dropdown" id="ability-dropdown">
+                        <div class="ability-multi-options" id="ability-options"></div>
+                        <div class="ability-multi-footer">
+                          <button type="button" class="btn btn-ghost btn-sm" onclick="app.clearAbilitySelection()">清空</button>
+                          <button type="button" class="btn btn-primary btn-sm" onclick="app.confirmAbilitySelection()">确定</button>
+                        </div>
+                      </div>
+                    </div>
+                    <input type="hidden" id="course-ability" value="">
+                    <div class="mt-2 text-right">
+                      <button type="button" class="btn btn-ghost btn-sm" style="color:var(--primary)" onclick="app.openAbilityDrawer()">管理能力维度</button>
+                    </div>
+                  </div>
+                  <div class="form-group" style="flex: 1;">
+                    <label class="form-label">课程讲师/机构 <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="course-instructor" maxlength="30" placeholder="请输入课程讲师或机构名称，不超过30个字符">
+                    <div class="form-hint">已输入 <span id="instructor-count">0</span>/30 字符</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab: 课程目录 -->
+              <div id="tab-catalog" class="tab-content">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="flex-1"></div>
+                  <button class="btn btn-primary btn-sm" onclick="app.addRootSection()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    添加课件
+                  </button>
+                  <button class="btn btn-primary btn-sm" onclick="app.addChapter()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    添加章
+                  </button>
+                  <button class="btn btn-outline-primary btn-sm" onclick="app.openAIImportModal()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6v6l4 2"/></svg>
+                    AI智能导入
+                  </button>
+                </div>
+                <div id="catalog-container"></div>
+
+                <div class="empty-state" id="catalog-empty" style="display:none">
+                  <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                  <p>暂无章节，点击"添加章"开始创建</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-header" style="justify-content:flex-end;border-top:1px solid var(--border-light);border-bottom:none">
+              <div class="flex gap-2">
+                <button class="btn btn-secondary" onclick="app.goToList()">取消</button>
+                <button class="btn btn-secondary" onclick="app.saveCourse('draft')">保存为草稿</button>
+                <button class="btn btn-primary" onclick="app.saveCourse('published')">保存并上架</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== 课程数据页 ==================== -->
+        <section id="page-course-data" class="page-section">
+          <div class="breadcrumb">
+            <span class="breadcrumb-item" onclick="app.goToList()">研训课程</span>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-item active">课程数据</span>
+          </div>
+
+          <!-- Course Basic Info -->
+          <div class="card mb-6">
+            <div class="card-body">
+              <div class="flex gap-4 items-start">
+                <img id="data-course-cover" src="" alt="" class="w-40 h-24 object-cover rounded-lg border border-stone-200">
+                <div>
+                  <h2 class="text-lg font-bold mb-1" id="data-course-name">--</h2>
+                  <p class="text-sm text-stone-500">创建者：<span id="data-course-creator">--</span></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats Overview -->
+          <div class="stats-grid" id="data-stats-grid"></div>
+
+          <!-- Detail Tabs -->
+          <div class="card">
+            <div class="tabs">
+              <div class="tab active" data-tab="section-detail" onclick="app.switchDataTab('section-detail')">课程章节详情</div>
+              <div class="tab" data-tab="teacher-detail" onclick="app.switchDataTab('teacher-detail')">教师学习详情</div>
+            </div>
+            <div class="card-body">
+              <div id="data-tab-section-detail" class="tab-content active">
+                <div class="flex justify-end mb-4">
+                  <button class="btn btn-secondary btn-sm" onclick="app.exportSectionDetail()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    导出
+                  </button>
+                </div>
+                <div class="table-wrapper" id="section-detail-table"></div>
+              </div>
+              <div id="data-tab-teacher-detail" class="tab-content">
+                <div class="filter-bar">
+                  <div class="search-input">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    <input type="text" id="teacher-search" placeholder="搜索教师姓名/手机号" oninput="app.filterTeachers()">
+                  </div>
+                  <select class="form-select" style="width:140px" id="teacher-status-filter" onchange="app.filterTeachers()">
+                    <option value="">全部状态</option>
+                    <option value="completed">已完成</option>
+                    <option value="incomplete">未完成</option>
+                  </select>
+                  <div style="flex:1"></div>
+                  <button class="btn btn-secondary btn-sm" onclick="app.exportTeacherDetail()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    导出
+                  </button>
+                </div>
+                <div class="table-wrapper" id="teacher-detail-table"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== 教师学习详情页 ==================== -->
+        <section id="page-teacher-detail" class="page-section">
+          <div class="breadcrumb">
+            <span class="breadcrumb-item" onclick="app.goToList()">研训课程</span>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-item" onclick="app.goToCourseData()">课程数据</span>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-item active">教师学习详情</span>
+          </div>
+
+          <!-- Teacher Overview -->
+          <div class="card mb-6">
+            <div class="card-body">
+              <h2 class="text-lg font-bold mb-4"><span id="teacher-detail-name">--</span>老师学习数据概览</h2>
+              <div class="grid grid-cols-4 gap-6">
+                <div class="text-center">
+                  <div class="text-3xl font-bold text-primary" id="teacher-total-sections">--</div>
+                  <div class="text-sm text-stone-500 mt-1">课件总数</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-3xl font-bold text-success" id="teacher-learned-sections">--</div>
+                  <div class="text-sm text-stone-500 mt-1">已学课件数</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-3xl font-bold text-warning" id="teacher-completion-rate">--</div>
+                  <div class="text-sm text-stone-500 mt-1">课程学习完成率</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-3xl font-bold text-info" id="teacher-total-materials">--</div>
+                  <div class="text-sm text-stone-500 mt-1">课程资料总数（个）</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progress Detail -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">学习进度明细</span>
+            </div>
+            <div class="card-body">
+              <div class="filter-bar">
+                <div class="search-input">
+                  <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                  <input type="text" id="progress-search" placeholder="搜索课件名称" oninput="app.filterProgress()">
+                </div>
+                <select class="form-select" style="width:140px" id="progress-status-filter" onchange="app.filterProgress()">
+                  <option value="">全部状态</option>
+                  <option value="completed">已完成</option>
+                  <option value="incomplete">未完成</option>
+                </select>
+              </div>
+              <div class="table-wrapper" id="progress-detail-table"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== 研训活动列表页 ==================== -->
+        <section id="page-activity-list" class="page-section">
+          <div class="page-header">
+            <div>
+              <div class="page-title">研训活动</div>
+              <div class="page-subtitle">管理所有研训活动，支持活动创建、编辑、跟进与数据导出</div>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-primary" onclick="app.createActivity()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                新建活动
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-body">
+              <!-- Filter Bar -->
+              <div class="filter-bar">
+                <div class="search-input">
+                  <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                  <input type="text" id="activity-search" placeholder="搜索活动名称" oninput="app.filterActivities()">
+                </div>
+                <select class="form-select" style="width:140px" id="activity-status-filter" onchange="app.filterActivities()">
+                  <option value="">全部状态</option>
+                  <option value="upcoming">未开始</option>
+                  <option value="ongoing">进行中</option>
+                  <option value="ended">已结束</option>
+                </select>
+                <input type="date" class="form-input" style="width:160px" id="activity-date-from" onchange="app.filterActivities()">
+                <span class="text-stone-400">至</span>
+                <input type="date" class="form-input" style="width:160px" id="activity-date-to" onchange="app.filterActivities()">
+              </div>
+
+              <!-- Table -->
+              <div class="table-wrapper" id="activity-table-container"></div>
+
+              <!-- Pagination -->
+              <div class="pagination" id="activity-pagination"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== 研训活动表单页 ==================== -->
+        <section id="page-activity-form" class="page-section">
+          <div class="breadcrumb" id="activity-form-breadcrumb">
+            <span class="breadcrumb-item" onclick="app.goToActivityList()">研训活动</span>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-item active" id="activity-form-breadcrumb-title">新建活动</span>
+          </div>
+
+          <div class="card">
+            <div class="card-body">
+              <!-- 基本信息 -->
+              <div class="mb-8">
+                <h3 class="text-base font-bold mb-4" style="border-left:3px solid var(--primary);padding-left:8px">基本信息</h3>
+                <div class="form-row">
+                  <div class="form-group" style="flex:2">
+                    <label class="form-label">研训活动名称 <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="activity-name" maxlength="30" placeholder="请输入研训活动名称，不超过30个字符">
+                  </div>
+                  <div class="form-group" style="flex:1">
+                    <label class="form-label">活动封面 <span class="required">*</span></label>
+                    <div class="cover-preview" id="activity-cover-preview" onclick="document.getElementById('activity-cover-file-input').click()">
+                      <span class="cover-placeholder">点击上传封面</span>
+                    </div>
+                    <input type="file" id="activity-cover-file-input" accept="image/jpeg,image/png" style="display:none" onchange="app.handleActivityCoverUpload(this)">
+                    <div class="form-hint">必填，建议比例16:9，支持jpg、png格式，大小不超过5MB</div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">培训目标</label>
+                  <textarea class="form-input" id="activity-objective" rows="3" maxlength="200" placeholder="请输入培训目标，不超过200个字符"></textarea>
+                  <div class="form-hint">选填，200个字符</div>
+                  <div class="flex flex-wrap items-center gap-2 mt-2">
+                    <input type="file" id="activity-objective-attachment" style="display:none" multiple onchange="app.handleObjectiveAttachment(this)">
+                    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('activity-objective-attachment').click()">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                      上传附件
+                    </button>
+                    <div class="flex flex-wrap gap-2" id="activity-attachments-list"></div>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">开始时间 <span class="required">*</span></label>
+                    <input type="date" class="form-input" id="activity-start-time">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">结束时间 <span class="required">*</span></label>
+                    <input type="date" class="form-input" id="activity-end-time">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">参与教师 <span class="required">*</span></label>
+                  <div class="flex items-center gap-3">
+                    <button class="btn btn-secondary btn-sm" onclick="app.openTeacherSelect()">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                      选择教师
+                    </button>
+                    <span class="text-sm text-stone-500" id="activity-teacher-count">已选择 0 位教师</span>
+                  </div>
+                  <div class="mt-2 flex flex-wrap gap-2" id="activity-selected-teachers"></div>
+                </div>
+              </div>
+
+              <div style="border-top:1px solid var(--border-light);margin:24px 0"></div>
+
+              <!-- 学时机制 -->
+              <div class="mb-8">
+                <h3 class="text-base font-bold mb-4" style="border-left:3px solid var(--primary);padding-left:8px">学时机制</h3>
+                <div class="form-group">
+                  <label class="form-label">是否设置学时</label>
+                  <div class="flex items-center gap-3">
+                    <label class="inline-flex items-center cursor-pointer">
+                      <input type="checkbox" id="activity-has-hours" class="sr-only peer" checked onchange="app.toggleHoursSetting()">
+                      <div class="relative w-11 h-6 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                      <span class="ms-3 text-sm font-medium text-stone-800" id="activity-hours-label">是</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div id="activity-hours-detail">
+                  <div class="form-group">
+                    <label class="form-label">需修满学时</label>
+                    <div class="flex items-center gap-2">
+                      <input type="number" class="form-input" id="activity-require-hours" style="width:120px" min="0" step="0.1" value="0.0" placeholder="0.0">
+                      <span class="text-sm text-stone-500">学时</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="border-top:1px solid var(--border-light);margin:24px 0"></div>
+
+              <!-- 课程内容 -->
+              <div class="mb-4">
+                <h3 class="text-base font-bold mb-4" style="border-left:3px solid var(--primary);padding-left:8px">课程内容</h3>
+
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="flex-1">
+                    <span class="text-sm text-stone-500" id="activity-total-hours-display" style="display:none">总学时：<strong class="text-primary" id="activity-total-hours">0.0</strong> 学时</span>
+                  </div>
+                  <button class="btn btn-secondary btn-sm" id="activity-batch-hours-btn" style="display:none" onclick="app.batchSetHours()">批量设置学时</button>
+                  <button class="btn btn-primary btn-sm" onclick="app.openCourseSelect()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    添加课程
+                  </button>
+                </div>
+
+                <div class="table-wrapper" id="activity-courses-table"></div>
+
+                <div class="empty-state" id="activity-courses-empty" style="display:none">
+                  <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                  <p>暂无课程，点击"添加课程"开始添加</p>
+                </div>
+
+                <div class="form-group mt-6">
+                  <label class="form-label">完成学习方式</label>
+                  <div class="flex items-center gap-6 mt-2" id="activity-study-mode-group">
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="activity-study-mode" value="view" class="form-radio" checked>
+                      <span class="text-sm">查看课程</span>
+                    </label>
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="activity-study-mode" value="complete" class="form-radio">
+                      <span class="text-sm">完成课程下所有课时学习</span>
+                    </label>
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="activity-study-mode" value="feedback" class="form-radio">
+                      <span class="text-sm">提交反馈</span>
+                    </label>
+                  </div>
+                  <div class="form-hint mt-1">编辑时不可修改</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-header" style="justify-content:flex-end;border-top:1px solid var(--border-light);border-bottom:none">
+              <div class="flex gap-2">
+                <button class="btn btn-secondary" onclick="app.goToActivityList()">取消</button>
+                <button class="btn btn-secondary" onclick="app.saveActivity('draft')">保存为草稿</button>
+                <button class="btn btn-primary" onclick="app.saveActivity('published')">保存并发布</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== 活动跟进页 ==================== -->
+        <section id="page-activity-follow" class="page-section">
+          <div class="breadcrumb">
+            <span class="breadcrumb-item" onclick="app.goToActivityList()">研训活动</span>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-item active" id="activity-follow-title">活动跟进</span>
+          </div>
+
+          <!-- Activity Overview -->
+          <div class="card mb-6">
+            <div class="card-body">
+              <div class="flex gap-4 items-start">
+                <img id="follow-activity-cover" src="" alt="" class="w-40 h-24 object-cover rounded-lg border border-stone-200">
+                <div class="flex-1">
+                  <h2 class="text-lg font-bold mb-1" id="follow-activity-name">--</h2>
+                  <p class="text-sm text-stone-500 mb-2">活动时间：<span id="follow-activity-time">--</span></p>
+                  <div class="flex gap-4 text-sm">
+                    <span>课程数：<strong id="follow-course-count">--</strong></span>
+                    <span id="follow-require-hours-wrap">需修满学时：<strong id="follow-require-hours">--</strong></span>
+                    <span>参与教师：<strong id="follow-teacher-count">--</strong></span>
+                    <span>完成学习方式：<strong id="follow-study-mode">--</strong></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Follow Tabs -->
+          <div class="card">
+            <div class="tabs">
+              <div class="tab active" data-tab="follow-student" onclick="app.switchFollowTab('follow-student')">学员学习情况</div>
+              <div class="tab" data-tab="follow-course" onclick="app.switchFollowTab('follow-course')">课程学习情况</div>
+            </div>
+            <div class="card-body">
+              <!-- Tab: 学员学习情况 -->
+              <div id="tab-follow-student" class="tab-content active">
+                <div class="flex justify-between items-center mb-4">
+                  <div class="search-input" style="width:280px">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    <input type="text" id="follow-student-search" placeholder="搜索教师姓名/手机号" oninput="app.filterFollowStudents()">
+                  </div>
+                  <button class="btn btn-secondary btn-sm" onclick="app.exportStudentData()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    导出Excel
+                  </button>
+                </div>
+                <div class="table-wrapper" id="follow-student-table"></div>
+              </div>
+
+              <!-- Tab: 课程学习情况 -->
+              <div id="tab-follow-course" class="tab-content">
+                <div class="flex justify-between items-center mb-4">
+                  <div class="search-input" style="width:280px">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    <input type="text" id="follow-course-search" placeholder="搜索课程名称" oninput="app.filterFollowCourses()">
+                  </div>
+                  <button class="btn btn-secondary btn-sm" onclick="app.exportCourseData()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    导出Excel
+                  </button>
+                </div>
+                <div class="table-wrapper" id="follow-course-table"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ==================== Modal: 删除确认 ==================== -->
+  <div class="modal-overlay" id="modal-delete">
+    <div class="modal" style="max-width:400px">
+      <div class="modal-header">
+        <span class="modal-title">确认删除</span>
+        <span class="modal-close" onclick="app.closeModal('modal-delete')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </span>
+      </div>
+      <div class="modal-body text-center">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="1.5" class="mx-auto mb-3"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p class="text-stone-600">确定要删除课程 <strong id="delete-course-name">--</strong> 吗？</p>
+        <p class="text-sm text-stone-400 mt-2">删除后不可恢复，请谨慎操作</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="app.closeModal('modal-delete')">取消</button>
+        <button class="btn btn-danger" onclick="app.confirmDelete()">确认删除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Modal: 上下架确认 ==================== -->
+  <div class="modal-overlay" id="modal-toggle-status">
+    <div class="modal" style="max-width:400px">
+      <div class="modal-header">
+        <span class="modal-title">确认操作</span>
+        <span class="modal-close" onclick="app.closeModal('modal-toggle-status')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </span>
+      </div>
+      <div class="modal-body text-center">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="1.5" class="mx-auto mb-3"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p class="text-stone-600" id="toggle-status-text">确定要下架该课程吗？</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="app.closeModal('modal-toggle-status')">取消</button>
+        <button class="btn btn-primary" onclick="app.confirmToggleStatus()">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Modal: 通用确认 ==================== -->
+  <div class="modal-overlay" id="modal-generic-confirm">
+    <div class="modal" style="max-width:400px">
+      <div class="modal-header">
+        <span class="modal-title" id="generic-confirm-title">确认</span>
+        <span class="modal-close" onclick="app.closeModal('modal-generic-confirm')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </span>
+      </div>
+      <div class="modal-body text-center">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="1.5" class="mx-auto mb-3"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p class="text-stone-600" id="generic-confirm-text">确定执行此操作吗？</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="app.closeModal('modal-generic-confirm')">取消</button>
+        <button class="btn btn-primary" id="generic-confirm-btn" onclick="app.execGenericConfirm()">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Modal: 通用输入 ==================== -->
+  <div class="modal-overlay" id="modal-generic-prompt">
+    <div class="modal" style="max-width:440px">
+      <div class="modal-header">
+        <span class="modal-title" id="generic-prompt-title">请输入</span>
+        <span class="modal-close" onclick="app.closeModal('modal-generic-prompt')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </span>
+      </div>
+      <div class="modal-body">
+        <p class="text-stone-600 mb-3" id="generic-prompt-desc"></p>
+        <input type="text" class="form-input" id="generic-prompt-input" placeholder="">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="app.closeModal('modal-generic-prompt')">取消</button>
+        <button class="btn btn-primary" id="generic-prompt-btn" onclick="app.execGenericPrompt()">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Modal: 添加/编辑课件 ==================== -->
+  <div class="modal-overlay" id="modal-section">
+    <div class="modal" style="max-width:600px">
+      <div class="modal-header">
+        <span class="modal-title" id="section-modal-title">添加课件</span>
+        <span class="modal-close" onclick="app.closeModal('modal-section')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </span>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">课件类型</label>
+          <div class="flex gap-3">
+            <label class="border border-stone-200 rounded-lg p-3 cursor-pointer flex-1 text-center hover:border-primary transition-colors">
+              <input type="radio" name="section-type" value="text" class="hidden" onchange="app.changeSectionType('text')">
+              <div class="w-10 h-10 rounded-lg bg-stone-100 text-stone-600 flex items-center justify-center mx-auto mb-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              </div>
+              <div class="text-sm font-medium">图文</div>
+            </label>
+            <label class="border border-stone-200 rounded-lg p-3 cursor-pointer flex-1 text-center hover:border-primary transition-colors">
+              <input type="radio" name="section-type" value="video" class="hidden" onchange="app.changeSectionType('video')">
+              <div class="w-10 h-10 rounded-lg bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </div>
+              <div class="text-sm font-medium">视频</div>
+            </label>
+            <label class="border border-stone-200 rounded-lg p-3 cursor-pointer flex-1 text-center hover:border-primary transition-colors">
+              <input type="radio" name="section-type" value="document" class="hidden" onchange="app.changeSectionType('document')">
+              <div class="w-10 h-10 rounded-lg bg-stone-200 text-stone-500 flex items-center justify-center mx-auto mb-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 13h6"/><path d="M9 17h6"/></svg>
+              </div>
+              <div class="text-sm font-medium">文档</div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">课件名称 <span class="required">*</span></label>
+          <input type="text" class="form-input" id="section-name" maxlength="30" placeholder="请输入课件名称，不超过30个字符">
+        </div>
+
+        <div id="section-fields-text">
+          <div class="form-group">
+            <label class="form-label">图文详情 <span class="required">*</span></label>
+            <div class="rich-editor" id="section-text-editor">
+              <div class="rich-editor-toolbar">
+                <button type="button" onclick="app.execSectionRichCommand('bold')" title="加粗"><b>B</b></button>
+                <button type="button" onclick="app.execSectionRichCommand('italic')" title="斜体"><i>I</i></button>
+                <button type="button" onclick="app.execSectionRichCommand('underline')" title="下划线"><u>U</u></button>
+                <span class="rich-toolbar-sep"></span>
+                <button type="button" onclick="app.execSectionRichCommand('insertUnorderedList')" title="无序列表">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                </button>
+                <button type="button" onclick="app.execSectionRichCommand('insertOrderedList')" title="有序列表">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+                </button>
+              </div>
+              <div class="rich-editor-content" id="section-text-content" contenteditable="true" placeholder="请输入图文详情"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">已学规则</label>
+            <div class="text-sm text-stone-500 bg-stone-50 rounded-lg p-3">进入图文详情页查看视为已学</div>
+          </div>
+        </div>
+
+        <div id="section-fields-video" style="display:none">
+          <div class="form-group">
+            <label class="form-label">视频上传 <span class="required">*</span></label>
+            <div class="upload-area" id="video-upload-area" onclick="document.getElementById('video-file-input').click()">
+              <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <p class="text-sm text-stone-500">点击上传视频</p>
+              <p class="text-xs text-stone-400 mt-1">支持mp4、wmv、avi、mov、flv、rmvb、3gp、m4v、mkv格式，不超过2GB</p>
+            </div>
+            <input type="file" id="video-file-input" style="display:none" onchange="app.handleVideoUpload(this)">
+            <div id="video-file-name" class="mt-2 text-sm text-stone-600"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">视频下载设置</label>
+              <select class="form-select" id="video-download">
+                <option value="forbid">禁止下载</option>
+                <option value="allow">允许下载</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">视频播放设置</label>
+              <select class="form-select" id="video-play">
+                <option value="free">不做限制</option>
+                <option value="restricted">未播放完禁止拖动及倍速</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">已学条件</label>
+            <div class="text-sm text-stone-500 bg-stone-50 rounded-lg p-3">观看完视频视为已学</div>
+          </div>
+        </div>
+
+        <div id="section-fields-document" style="display:none">
+          <div class="form-group">
+            <label class="form-label">文档上传 <span class="required">*</span></label>
+            <div class="upload-area" id="document-upload-area" onclick="document.getElementById('document-file-input').click()">
+              <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <p class="text-sm text-stone-500">点击上传文档</p>
+              <p class="text-xs text-stone-400 mt-1">支持pdf、jpg、jpeg、png、pptx、ppt、docx、doc、xlsx、xls格式，不超过100MB</p>
+            </div>
+            <input type="file" id="document-file-input" style="display:none" onchange="app.handleDocumentUpload(this)">
+            <div id="document-file-name" class="mt-2 text-sm text-stone-600"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">文档下载设置</label>
+            <select class="form-select" id="doc-download">
+              <option value="forbid">禁止下载</option>
+              <option value="allow">允许下载</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">已学条件</label>
+            <div class="text-sm text-stone-500 bg-stone-50 rounded-lg p-3">进入文档详情页面查看视为已学</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">拓展资料</label>
+          <div class="upload-area" onclick="app.uploadMaterials()">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <p class="text-sm text-stone-500">点击上传拓展资料</p>
+            <p class="text-xs text-stone-400 mt-1">最多可上传20个文件</p>
+          </div>
+          <div id="materials-list" class="mt-2 space-y-1"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="app.closeModal('modal-section')">取消</button>
+        <button class="btn btn-primary" onclick="app.saveSection()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Modal: 教师选择 ==================== -->
+  <div class="modal-overlay" id="modal-teacher-select">
+    <div class="modal" style="max-width:720px;max-height:80vh;display:flex;flex-direction:column">
+      <div class="modal-header">
+        <span class="modal-title">选择参与教师</span>
+        <span class="modal-close" onclick="app.closeModal('modal-teacher-select')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </span>
+      </div>
+      <div class="modal-body" style="flex:1;overflow:hidden;display:flex;gap:16px;min-height:0">
+        <!-- Org Tree -->
+        <div style="width:200px;border-right:1px solid var(--border-light);overflow-y:auto;padding-right:12px">
+          <div class="text-sm font-bold mb-3" style="color:var(--text-primary)">组织架构</div>
+          <div id="teacher-select-tree"></div>
+        </div>
+        <!-- Teacher List -->
+        <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+          <div class="search-input mb-3" style="max-width:none;flex:0 0 auto">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="teacher-select-search" placeholder="搜索教师姓名/手机号" oninput="app.filterTeacherSelect()">
+          </div>
+          <div class="flex items-center gap-2 mb-2">
+            <label class="inline-flex items-center cursor-pointer text-sm">
+              <input type="checkbox" id="teacher-select-all" class="mr-1" onchange="app.toggleSelectAllTeachers()"> 全选
+            </label>
+          </div>
+          <div class="table-wrapper" style="flex:1;overflow-y:auto">
+            <table class="data-table" style="table-layout:auto">
+              <thead>
+                <tr><th style="width:36px"><input type="checkbox" id="teacher-select-header-check" onchange="app.toggleSelectAllTeachers()"></th><th>姓名</th><th>手机号</th><th>部门</th><th>年级</th><th>学科</th></tr>
+              </thead>
+              <tbody id="teacher-select-list"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="teacher-select-pagination" style="padding-top:8px;justify-content:center"></div>
+          <div class="mt-3 pt-3" style="border-top:1px solid var(--border-light)">
+            <div class="text-sm font-medium mb-2">已选教师（<span id="teacher-select-count" class="text-primary">0</span> 人）</div>
+            <div class="flex flex-wrap gap-2 max-h-[90px] overflow-y-auto" id="teacher-selected-preview"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="app.closeModal('modal-teacher-select')">取消</button>
+        <button class="btn btn-primary" onclick="app.confirmTeacherSelect()">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Modal: 课程选择 ==================== -->
+  <div class="modal-overlay" id="modal-course-select">
+    <div class="modal" style="max-width:900px;max-height:80vh;display:flex;flex-direction:column">
+      <div class="modal-header">
+        <span class="modal-title">选择课程</span>
+        <span class="modal-close" onclick="app.closeModal('modal-course-select')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </span>
+      </div>
+      <div class="modal-body" style="flex:1;overflow:hidden;display:flex;gap:16px;min-height:0">
+        <!-- 左侧：课程体系 -->
+        <div style="width:200px;border-right:1px solid var(--border-light);overflow-y:auto;padding-right:12px;display:flex;flex-direction:column">
+          <div class="text-sm font-bold mb-3" style="color:var(--text-primary)">课程体系</div>
+          <div class="search-input mb-2" style="max-width:none;flex:0 0 auto">
+            <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="course-type-search" placeholder="搜索体系" oninput="app.filterCourseTypeTree()">
+          </div>
+          <div style="flex:1;overflow-y:auto" id="course-type-tree"></div>
+        </div>
+        <!-- 右侧：课程列表 -->
+        <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+          <div class="search-input mb-3" style="max-width:none;flex:0 0 auto">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="course-select-search" placeholder="搜索课程名称" oninput="app.filterCourseSelect()">
+          </div>
+          <div class="flex items-center gap-2 mb-2">
+            <label class="inline-flex items-center cursor-pointer text-sm">
+              <input type="checkbox" id="course-select-all" class="mr-1" onchange="app.toggleSelectAllCourses()"> 全选
+            </label>
+          </div>
+          <div class="table-wrapper" style="flex:1;overflow-y:auto">
+            <table class="data-table" style="table-layout:auto">
+              <thead>
+                <tr><th style="width:36px"><input type="checkbox" id="course-select-header-check" onchange="app.toggleSelectAllCourses()"></th><th>课程名称</th><th>课程体系</th><th>课程讲师/机构</th><th>课件数</th></tr>
+              </thead>
+              <tbody id="course-select-list"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="course-select-pagination" style="padding-top:8px;justify-content:center"></div>
+          <div class="mt-2 text-sm text-stone-500">已选 <span id="course-select-count" class="font-medium text-primary">0</span> 门课程</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="app.closeModal('modal-course-select')">取消</button>
+        <button class="btn btn-primary" onclick="app.confirmCourseSelect()">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Modal: 学员详情 ==================== -->
+  <div class="modal-overlay" id="modal-student-detail">
+    <div class="modal" style="max-width:720px;max-height:85vh;display:flex;flex-direction:column">
+      <div class="modal-header">
+        <span class="modal-title" id="student-detail-title">学习详情</span>
+        <span class="modal-close" onclick="app.closeModal('modal-student-detail')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </span>
+      </div>
+      <div class="modal-body" style="flex:1;overflow-y:auto">
+        <div class="flex gap-4 mb-4">
+          <div style="flex:1">
+            <div class="text-sm font-medium mb-2">学时获得情况</div>
+            <div id="student-detail-hours-chart" style="width:100%;height:200px"></div>
+          </div>
+          <div style="flex:1">
+            <div class="text-sm font-medium mb-2">课程学习情况</div>
+            <div id="student-detail-courses-chart" style="width:100%;height:200px"></div>
+          </div>
+        </div>
+        <div class="flex justify-between items-center mb-3">
+          <span class="text-sm font-medium">学习明细</span>
+          <button class="btn btn-secondary btn-sm" onclick="app.exportDetailData()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            导出Excel
+          </button>
+        </div>
+        <div class="table-wrapper" id="student-detail-table"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="app.closeModal('modal-student-detail')">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Modal: 课程学习详情 ==================== -->
+  <div class="modal-overlay" id="modal-course-detail">
+    <div class="modal" style="max-width:720px;max-height:85vh;display:flex;flex-direction:column">
+      <div class="modal-header">
+        <span class="modal-title" id="course-detail-title">课程学习详情</span>
+        <span class="modal-close" onclick="app.closeModal('modal-course-detail')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </span>
+      </div>
+      <div class="modal-body" style="flex:1;overflow-y:auto">
+        <div class="flex justify-between items-center mb-3">
+          <span class="text-sm font-medium">课件学习明细</span>
+          <button class="btn btn-secondary btn-sm" onclick="app.exportDetailData()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            导出Excel
+          </button>
+        </div>
+        <div class="table-wrapper" id="course-detail-table"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="app.closeModal('modal-course-detail')">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Drawer: 课程类型管理 ==================== -->
+  <div class="modal-overlay" id="drawer-overlay" onclick="app.closeTypeDrawer()"></div>
+  <div class="drawer" id="drawer-type-manage">
+    <div class="drawer-header">
+      <span class="modal-title">管理课程类型</span>
+      <span class="modal-close" onclick="app.closeTypeDrawer()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </span>
+    </div>
+    <div class="drawer-body">
+      <div class="flex gap-2 mb-4">
+        <input type="text" class="form-input flex-1" id="new-type-name" placeholder="输入类型名称">
+        <button class="btn btn-primary" onclick="app.addCourseType()">添加</button>
+      </div>
+      <div id="type-tree-container"></div>
+    </div>
+    <div class="drawer-footer">
+      <button class="btn btn-secondary" onclick="app.closeTypeDrawer()">关闭</button>
+    </div>
+  </div>
+
+  <!-- ==================== Drawer: 能力维度管理 ==================== -->
+  <div class="modal-overlay" id="drawer-overlay-ability" onclick="app.closeAbilityDrawer()"></div>
+  <div class="drawer" id="drawer-ability-manage">
+    <div class="drawer-header">
+      <span class="modal-title">管理能力维度</span>
+      <span class="modal-close" onclick="app.closeAbilityDrawer()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </span>
+    </div>
+    <div class="drawer-body">
+      <div class="flex gap-2 mb-4">
+        <input type="text" class="form-input flex-1" id="new-ability-name" placeholder="输入能力维度名称">
+        <button class="btn btn-primary" onclick="app.addAbilityDimension()">添加</button>
+      </div>
+      <div id="ability-list-container"></div>
+    </div>
+    <div class="drawer-footer">
+      <button class="btn btn-secondary" onclick="app.closeAbilityDrawer()">关闭</button>
+    </div>
+  </div>
+
+  <!-- ==================== Modal: AI智能导入 ==================== -->
+  <div class="modal-overlay" id="modal-ai-import">
+    <div class="modal" style="max-width:800px;max-height:90vh;display:flex;flex-direction:column">
+      <div class="modal-header">
+        <span class="modal-title">AI智能导入</span>
+        <span class="modal-close" onclick="app.closeAIImportModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </span>
+      </div>
+      <div class="modal-body" style="flex:1;overflow-y:auto">
+        <!-- Phase 1: Upload -->
+        <div id="ai-import-phase-upload">
+          <div class="upload-area" id="ai-import-upload-area" onclick="document.getElementById('ai-import-file-input').click()">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <p class="text-sm text-stone-500">点击或拖拽上传视频和文档</p>
+            <p class="text-xs text-stone-400 mt-1">支持批量上传，视频格式：mp4、wmv、avi、mov、flv；文档格式：pdf、pptx、ppt、docx、doc、xlsx、xls</p>
+          </div>
+          <input type="file" id="ai-import-file-input" style="display:none" multiple onchange="app.handleAIImportUpload(this)" accept=".mp4,.wmv,.avi,.mov,.flv,.pdf,.pptx,.ppt,.docx,.doc,.xlsx,.xls">
+          <div id="ai-import-file-list" class="mt-4 space-y-2"></div>
+        </div>
+
+        <!-- Phase 2: AI Analysis -->
+        <div id="ai-import-phase-analyzing" style="display:none">
+          <div class="text-center py-8">
+            <div class="spinner" style="width:40px;height:40px;border:3px solid rgba(200,0,12,0.1);border-top-color:#C8000C;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px;"></div>
+            <p class="text-sm font-medium">AI正在智能分析文件...</p>
+            <p class="text-xs text-stone-400 mt-1">自动识别章节结构并匹配课件</p>
+          </div>
+        </div>
+
+        <!-- Phase 3: Match Results -->
+        <div id="ai-import-phase-results" style="display:none">
+          <div class="text-sm font-medium mb-3">AI匹配结果（共 <span id="ai-import-result-count">0</span> 个文件）</div>
+          <div class="table-wrapper" style="max-height:400px;overflow-y:auto">
+            <table class="data-table" style="width:100%">
+              <thead>
+                <tr>
+                  <th style="width:30%">文件名</th>
+                  <th style="width:15%">类型</th>
+                  <th style="width:25%">AI匹配章节</th>
+                  <th style="width:25%">课件名称</th>
+                  <th style="width:5%"></th>
+                </tr>
+              </thead>
+              <tbody id="ai-import-result-body"></tbody>
+            </table>
+          </div>
+          <div class="text-xs text-stone-400 mt-2">* 可手动修改章节名称和课件名称，系统将自动创建对应章节</div>
+        </div>
+      </div>
+      <div class="modal-footer" id="ai-import-footer">
+        <button class="btn btn-secondary" onclick="app.closeAIImportModal()">取消</button>
+        <button class="btn btn-primary" id="ai-import-btn-analyze" onclick="app.startAIAnalysis()" disabled>开始AI分析</button>
+        <button class="btn btn-primary" id="ai-import-btn-confirm" onclick="app.confirmAIImport()" style="display:none">确认导入</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
