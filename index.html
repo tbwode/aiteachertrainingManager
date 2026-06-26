@@ -412,7 +412,7 @@
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     添加章
                   </button>
-                  <button class="btn btn-outline-primary btn-sm" onclick="app.openAIImportModal()">
+                  <button class="btn btn-primary btn-sm" onclick="app.openAIImportModal()">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6v6l4 2"/></svg>
                     AI智能导入
                   </button>
@@ -729,7 +729,11 @@
                     </label>
                     <label class="inline-flex items-center gap-2 cursor-pointer">
                       <input type="radio" name="activity-study-mode" value="feedback" class="form-radio">
-                      <span class="text-sm">提交反馈</span>
+                      <span class="text-sm">提交学习心得</span>
+                    </label>
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="activity-study-mode" value="complete-feedback" class="form-radio">
+                      <span class="text-sm">完成课程下所有课时学习+提交学习心得</span>
                     </label>
                   </div>
                   <div class="form-hint mt-1">编辑时不可修改</div>
