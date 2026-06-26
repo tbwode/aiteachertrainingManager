@@ -2752,7 +2752,7 @@ const app = {
     } else {
       hoursWrap.style.display = 'none';
     }
-    const modeMap = { view: '浏览即算', complete: '完成课程下所有课时学习', feedback: '完成+反馈' };
+    const modeMap = { view: '浏览即算', complete: '完成课程下所有课时学习', feedback: '提交学习心得', 'complete-feedback': '完成课程下所有课时学习+提交学习心得' };
     document.getElementById('follow-study-mode').textContent = modeMap[a.studyMode] || a.studyMode;
 
     document.querySelectorAll('#page-activity-follow .tab').forEach(el => {
@@ -2952,7 +2952,7 @@ const app = {
             <th>课程名称</th>
             <th>获得学时</th>
             <th>完成时间</th>
-            <th>反馈</th>
+            <th>学习心得</th>
           </tr>
         </thead>
         <tbody>
@@ -3080,7 +3080,7 @@ const app = {
       '课程名称': r.courseName,
       '获得学时': r.hours || 0,
       '完成时间': r.completeTime,
-      '反馈': r.feedback || '-'
+      '学习心得': r.feedback || '-'
     }));
     this.exportToExcel(data, `${a.name}_${teacherName || '学习明细'}`);
   },
