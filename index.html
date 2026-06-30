@@ -1258,9 +1258,9 @@
           <div class="upload-area" id="ai-import-upload-area" onclick="document.getElementById('ai-import-file-input').click()">
             <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             <p class="text-sm text-stone-500">点击或拖拽上传视频和文档</p>
-            <p class="text-xs text-stone-400 mt-1">支持批量上传，视频格式：mp4、wmv、avi、mov、flv；文档格式：pdf、pptx、ppt、docx、doc、xlsx、xls</p>
+            <p class="text-xs text-stone-400 mt-1">支持批量上传，视频格式：mp4、wmv、avi、mov、flv、rmvb、3gp、m4v、mkv；文档格式：pdf、jpg、jpeg、png、pptx、ppt、docx、doc、xlsx、xls</p>
           </div>
-          <input type="file" id="ai-import-file-input" style="display:none" multiple onchange="app.handleAIImportUpload(this)" accept=".mp4,.wmv,.avi,.mov,.flv,.pdf,.pptx,.ppt,.docx,.doc,.xlsx,.xls">
+          <input type="file" id="ai-import-file-input" style="display:none" multiple onchange="app.handleAIImportUpload(this)" accept=".mp4,.wmv,.avi,.mov,.flv,.rmvb,.3gp,.m4v,.mkv,.pdf,.jpg,.jpeg,.png,.pptx,.ppt,.docx,.doc,.xlsx,.xls">
           <div id="ai-import-file-list" class="mt-4 space-y-2"></div>
         </div>
 

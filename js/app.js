@@ -845,12 +845,22 @@ const app = {
     if (!files.length) return;
     const videoExts = ['mp4', 'wmv', 'avi', 'mov', 'flv', 'rmvb', '3gp', 'm4v', 'mkv'];
     const docExts = ['pdf', 'pptx', 'ppt', 'docx', 'doc', 'xlsx', 'xls', 'jpg', 'jpeg', 'png'];
+    const maxVideoSize = 2 * 1024 * 1024 * 1024; // 2GB
+    const maxDocSize = 100 * 1024 * 1024; // 100MB
     files.forEach(file => {
       const ext = file.name.split('.').pop().toLowerCase();
       let type = null;
       if (videoExts.includes(ext)) type = 'video';
       else if (docExts.includes(ext)) type = 'document';
       if (!type) return;
+      if (type === 'video' && file.size > maxVideoSize) {
+        this.toast(`视频文件 ${file.name} 超过2GB限制，已跳过`, 'error');
+        return;
+      }
+      if (type === 'document' && file.size > maxDocSize) {
+        this.toast(`文档文件 ${file.name} 超过100MB限制，已跳过`, 'error');
+        return;
+      }
       this.aiImportFiles.push({ name: file.name, size: file.size, type, ext });
     });
     this.renderAIImportUpload();
